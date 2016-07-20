@@ -3,3 +3,7 @@ Dependencies:
 sudo apt-get install python-pip libglib2.0-dev
 sudo pip install bluepy
 
+For serial access see:
+
+https://github.com/Informatic/qn902x-tools
+
