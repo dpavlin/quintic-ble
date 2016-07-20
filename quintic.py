@@ -23,7 +23,8 @@
 #    Characteristic <013784cf-f7e3-55b4-6c4c-9fd140100a16>, hnd=0x15, supports WRITE NO RESPONSE 
 
 
-from bluepy.bluepy import btle
+#from bluepy.bluepy import btle
+from bluepy import btle
 
 import time,struct,datetime
 
@@ -209,7 +210,8 @@ if __name__ == '__main__':
     from itertools import product
 
     # Connect by address. Use "sudo hcitool lescan" to find address.
-    q = Quintic('08:7C:BE:8F:3C:FB')
+    #q = Quintic('08:7C:BE:8F:3C:FB')
+    q = Quintic('08:7C:BE:92:85:23')
 
     q.query_minutes_log()
     q.query_days_log()
