@@ -1,3 +1,9 @@
+NXP site:
+
+QN9021: Ultra low power Bluetooth LE system-on-chip solution
+http://www.nxp.com/products/microcontrollers-and-processors/more-processors/application-specific-mcus-mpus/bluetooth-low-energy-ble/ultra-low-power-bluetooth-le-system-on-chip-solution:QN9021?
+
+
 Dependencies:
 
 sudo apt-get install python-pip libglib2.0-dev
