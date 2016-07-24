@@ -213,7 +213,11 @@ if __name__ == '__main__':
     #q = Quintic('08:7C:BE:8F:3C:FB')
     q = Quintic('08:7C:BE:92:85:23')
 
+#    q.vibrate(2,'minutes');
+
+    #q.button_mode();
     q.query_minutes_log()
+    #q.button_mode(on=False);
     q.query_days_log()
 
 #    for b in [0x02, 0x05, 0x06, 0x0b, 0x0e, 0x0f]:
