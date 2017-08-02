@@ -29,7 +29,7 @@ from bluepy import btle
 import time,struct,datetime
 
 class Quintic(btle.DefaultDelegate):
-    def __init__(self, deviceAddress):
+    def __init__(self, deviceAddress, mqttc):
         btle.DefaultDelegate.__init__(self)
 
         self.peripheral = btle.Peripheral(deviceAddress, btle.ADDR_TYPE_PUBLIC)
@@ -44,6 +44,9 @@ class Quintic(btle.DefaultDelegate):
         print 'Notification Enabled'
 
         self.set_date()
+
+        self.mqttc = mqttc
+        self.mqttc.publish('qunatic/stat', 'started');
 
     def cmd(self, data):
         self.peripheral.writeCharacteristic(0x19, data, withResponse=False)
@@ -153,6 +156,8 @@ class Quintic(btle.DefaultDelegate):
             else:
                 print '<- Unknown:', data.encode('hex'), data
         elif ord(data[0]) == 0x5a:
+            self.mqttc.publish('quintic/data', data.encode('hex'))
+            self.mqttc.loop(timeout=0.1)
             print '<- Data:', data.encode('hex')
             if ord(data[1]) == 0x05:
                 if len(data) == 5:
@@ -207,11 +212,14 @@ class Quintic(btle.DefaultDelegate):
 
 if __name__ == '__main__':
 
+    import paho.mqtt.client as mqtt
+    mqttc = mqtt.Client()
+
     from itertools import product
 
     # Connect by address. Use "sudo hcitool lescan" to find address.
     #q = Quintic('08:7C:BE:8F:3C:FB')
-    q = Quintic('08:7C:BE:92:85:23')
+    q = Quintic('08:7C:BE:92:85:23', mqttc)
 
 #    q.vibrate(2,'minutes');
 
@@ -229,8 +237,37 @@ if __name__ == '__main__':
 #    for i in range(5, 100, 5):
 #        q.set_reminder(dt.hour, dt.minute+i)
 
+    # The callback for when the client receives a CONNACK response from the server.
+    def on_connect(client, userdata, flags, rc):
+        print("Connected with result code "+str(rc))
+    
+        # Subscribing in on_connect() means that if we lose the connection and
+        # reconnect then subscriptions will be renewed.
+        client.subscribe("quintic/cmd")
+    
+    # The callback for when a PUBLISH message is received from the server.
+    def on_message(client, userdata, msg):
+        print(msg.topic+" "+str(msg.payload))
+        q.button_mode(on=True);
+    
+    mqttc.on_connect = on_connect
+    mqttc.on_message = on_message
+    
+    mqttc.connect("rpi2", 1883, 60)
+    mqttc.loop(timeout=0.1)
+    
+    # Blocking call that processes network traffic, dispatches callbacks and
+    # handles reconnecting.
+    # Other loop*() functions are available that give a threaded interface and a
+    # manual interface.
+    #mqttc.loop_forever()
+    # start network thread
+    #mqttc.loop_start()
+
+    q.button_mode(on=True);
     while True:
-        q.waitForNotifications(5.0)
+        mqttc.loop(timeout=0.1)
+        q.waitForNotifications(0.2)
 
 
     
