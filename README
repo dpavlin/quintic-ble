@@ -13,6 +13,21 @@ Dependencies:
 sudo apt-get install python-pip libglib2.0-dev
 sudo pip install bluepy
 
+
+Troublesooting:
+
+On Raspberry Pi 3 if you get follwing error:
+
+	bluepy.btle.BTLEException: Failed to connect to peripheral 08:7C:BE:92:85:23, addr type: public
+
+Try
+
+	sudo systemctl restart hciuart
+	sudo systemctl restart bluetooth
+
+To reset all current connections to bluetooth devices.
+
+
 For serial access see:
 
 https://github.com/Informatic/qn902x-tools
