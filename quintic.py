@@ -239,7 +239,7 @@ if __name__ == '__main__':
 
     # The callback for when the client receives a CONNACK response from the server.
     def on_connect(client, userdata, flags, rc):
-        print("Connected with result code "+str(rc))
+        print("MQTT Connected with result code "+str(rc))
     
         # Subscribing in on_connect() means that if we lose the connection and
         # reconnect then subscriptions will be renewed.
@@ -248,7 +248,20 @@ if __name__ == '__main__':
     # The callback for when a PUBLISH message is received from the server.
     def on_message(client, userdata, msg):
         print(msg.topic+" "+str(msg.payload))
-        q.button_mode(on=True);
+	m = msg.payload.split(" ")
+        if msg.payload == "button":
+            q.button_mode(on=True);
+        elif m[0] == "vibrate":
+            # icon: 0 = none, 1 = ringing phone, 2 = email, 3 = penguin, 4 = phone, 5 = phone
+            icon = 0
+            if len(m) == 2:
+                icon = int(m[1])
+            q.vibrate(icon)
+        elif m[0] == "firmware":
+            q.query_firmware()
+        else:
+            print("IGNORE", m);
+        
     
     mqttc.on_connect = on_connect
     mqttc.on_message = on_message
@@ -264,7 +277,7 @@ if __name__ == '__main__':
     # start network thread
     #mqttc.loop_start()
 
-    q.button_mode(on=True);
+    #q.button_mode(on=True);
     while True:
         mqttc.loop(timeout=0.1)
         q.waitForNotifications(0.2)
