@@ -48,10 +48,10 @@ class Quintic(btle.DefaultDelegate):
         self.mqttc = mqttc
         self.mqttc.publish('qunatic/stat', 'started');
 
-    def cmd(self, data):
+    def cmd(self, data, wait_for=5.0):
         self.peripheral.writeCharacteristic(0x19, data, withResponse=False)
         print '-> Command:', data.encode('hex')
-        self.waitForNotifications(5.0)
+        self.waitForNotifications(wait_for)
 
     def test_cmd(self, a, b, c):
         self.cmd(struct.pack('<BBBBBBBBBBBBBBBBBBBB', a, b, c, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
@@ -96,7 +96,7 @@ class Quintic(btle.DefaultDelegate):
 
     def button_mode(self, on=True):
         self.cmd(struct.pack('<BBBBBBBBBBBBBBBBBBBB', 0x5a, 0x0c, 0x00, 0x04, 0x01 if on else 0x00, 0x00, 0x1e, 0x00, 
-                             0,0,0,0,0,0,0,0,0,0,0,0))
+                             0,0,0,0,0,0,0,0,0,0,0,0), 0.1)
 
     def query_firmware(self):
         self.cmd(struct.pack('<BBBBBBBBBBBBBBBBBBBB', 0x5a, 0x10, 0x00, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
