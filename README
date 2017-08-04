@@ -1,6 +1,13 @@
-Original web post: https://www.schlafhacking.de/blog/?p=97
+This turns cheap Quintic based wrist band into MQTT button.
 
-Original gist: https://gist.github.com/ali1234/ac9170132e5abfc5381353428e70f1d9
+Example usage:
+
+	./quintic.py # runs mqtt for wristband
+	mosquitto_pub -t quintic/cmd -m button
+
+This code is based on gist: https://gist.github.com/ali1234/ac9170132e5abfc5381353428e70f1d9
+which is linked from web post at https://www.schlafhacking.de/blog/?p=97
+
 
 NXP site:
 
