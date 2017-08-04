@@ -224,9 +224,9 @@ if __name__ == '__main__':
 #    q.vibrate(2,'minutes');
 
     #q.button_mode();
-    q.query_minutes_log()
+    #q.query_minutes_log()
     #q.button_mode(on=False);
-    q.query_days_log()
+    #q.query_days_log()
 
 #    for b in [0x02, 0x05, 0x06, 0x0b, 0x0e, 0x0f]:
 #        for a in [0x5a, 0x5b]:
@@ -252,13 +252,19 @@ if __name__ == '__main__':
         if msg.payload == "button":
             q.button_mode(on=True);
         elif m[0] == "vibrate":
-            # icon: 0 = none, 1 = ringing phone, 2 = email, 3 = penguin, 4 = phone, 5 = phone
-            icon = 0
-            if len(m) == 2:
+            icon = 0 # 0 = none, 1 = ringing phone, 2 = email, 3 = penguin, 4 = phone, 5 = phone
+            if len(m) >= 2:
                 icon = int(m[1])
-            q.vibrate(icon)
+            msg = ""
+            if len(m) >= 3:
+                msg = m[2]
+            q.vibrate(icon, msg)
         elif m[0] == "firmware":
             q.query_firmware()
+        elif m[0] == "minutes":
+            q.query_minutes_log()
+        elif m[0] == "days":
+            q.query_days_log()
         else:
             print("IGNORE", m);
         
