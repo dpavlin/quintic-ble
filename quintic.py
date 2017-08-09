@@ -30,6 +30,10 @@ import time,struct,datetime
 
 class Quintic(btle.DefaultDelegate):
     def __init__(self, deviceAddress, mqttc):
+        self.mqttc = mqttc
+        self.mqttc.publish('qunatic/stat', 'started');
+        self.mqttc.loop(timeout=0.1)
+
         btle.DefaultDelegate.__init__(self)
 
         self.peripheral = btle.Peripheral(deviceAddress, btle.ADDR_TYPE_PUBLIC)
@@ -45,8 +49,6 @@ class Quintic(btle.DefaultDelegate):
 
         self.set_date()
 
-        self.mqttc = mqttc
-        self.mqttc.publish('qunatic/stat', 'started');
 
     def cmd(self, data, wait_for=5.0):
         self.peripheral.writeCharacteristic(0x19, data, withResponse=False)
@@ -185,11 +187,17 @@ class Quintic(btle.DefaultDelegate):
         print '<- Message from other handle', hex(cHandle)
 
     def device_info(self, data):
-        print '    Model:', data[-5:], 'MAC:', data[5:11].encode('hex'), 'Firmware:', ord(data[-6]) | (ord(data[-7])<<8), 'Protocol:', ord(data[12]) | (ord(data[11])<<8)
+        info = "Model:%s MAC:%s Firmware:%d Protocol:%d" % ( data[-5:], data[5:11].encode('hex'), ord(data[-6]) | (ord(data[-7])<<8), ord(data[12]) | (ord(data[11])<<8) )
+        print info;
+        self.mqttc.publish('quintic/stat', info);
+        self.mqttc.loop(timeout=0.1)
 
     def device_info_other(self, data):
-        print '    Model:', data[-5:], 'MAC:', data[7:13].encode('hex'), 'Firmware:', ord(data[4]) | (ord(data[3])<<8), 'Protocol:', ord(data[14]) | (ord(data[13])<<8)
-
+        info = "Model:%s MAC:%s Firmware:%d Protocol:%d" % ( data[-5:], data[7:13].encode('hex'), ord(data[4]) | (ord(data[3])<<8), ord(data[14]) | (ord(data[13])<<8) )
+        print info;
+        self.mqttc.publish('quintic/stat', info);
+        self.mqttc.loop(timeout=0.1)
+	
     def handle_log(self, log):
         (length, b, c, d, e, logtype, year, month, day, first, last, v, w, x, y, z) = struct.unpack('>HBBBBBBBBBBBBBBB', log[:17])
         date = datetime.date(year=year+2000, month=month, day=day)
@@ -215,27 +223,6 @@ if __name__ == '__main__':
     import paho.mqtt.client as mqtt
     mqttc = mqtt.Client()
 
-    from itertools import product
-
-    # Connect by address. Use "sudo hcitool lescan" to find address.
-    #q = Quintic('08:7C:BE:8F:3C:FB')
-    q = Quintic('08:7C:BE:92:85:23', mqttc)
-
-#    q.vibrate(2,'minutes');
-
-    #q.button_mode();
-    #q.query_minutes_log()
-    #q.button_mode(on=False);
-    #q.query_days_log()
-
-#    for b in [0x02, 0x05, 0x06, 0x0b, 0x0e, 0x0f]:
-#        for a in [0x5a, 0x5b]:
-#            q.test_cmd(a, b, 0)
-#            q.waitForNotifications(5.0)
-
-#    dt = datetime.datetime.now()
-#    for i in range(5, 100, 5):
-#        q.set_reminder(dt.hour, dt.minute+i)
 
     # The callback for when the client receives a CONNACK response from the server.
     def on_connect(client, userdata, flags, rc):
@@ -274,7 +261,7 @@ if __name__ == '__main__':
     
     mqttc.connect("rpi2", 1883, 60)
     mqttc.loop(timeout=0.1)
-    
+
     # Blocking call that processes network traffic, dispatches callbacks and
     # handles reconnecting.
     # Other loop*() functions are available that give a threaded interface and a
@@ -283,6 +270,29 @@ if __name__ == '__main__':
     # start network thread
     #mqttc.loop_start()
 
+
+
+    from itertools import product
+
+    # Connect by address. Use "sudo hcitool lescan" to find address.
+    #q = Quintic('08:7C:BE:8F:3C:FB')
+    q = Quintic('08:7C:BE:92:85:23', mqttc)
+
+#    q.vibrate(2,'minutes');
+
+    #q.button_mode();
+    #q.query_minutes_log()
+    #q.button_mode(on=False);
+    #q.query_days_log()
+
+#    for b in [0x02, 0x05, 0x06, 0x0b, 0x0e, 0x0f]:
+#        for a in [0x5a, 0x5b]:
+#            q.test_cmd(a, b, 0)
+#            q.waitForNotifications(5.0)
+
+#    dt = datetime.datetime.now()
+#    for i in range(5, 100, 5):
+#        q.set_reminder(dt.hour, dt.minute+i)
     #q.button_mode(on=True);
     while True:
         mqttc.loop(timeout=0.1)
