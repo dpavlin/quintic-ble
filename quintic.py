@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 
 #Connecting to: 08:7C:BE:8F:3C:FB, address type: public
 #Service <uuid=Generic Attribute handleStart=12 handleEnd=15> :
