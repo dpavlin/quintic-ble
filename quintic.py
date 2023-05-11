@@ -41,18 +41,18 @@ class Quintic(btle.DefaultDelegate):
 
         #self.dumpCharacteristics()
 
-        print 'Connected'
+        print('Connected')
 
         self.peripheral.writeCharacteristic(0x1d, struct.pack('<BB', 0x01, 0x00), withResponse=True)
 
-        print 'Notification Enabled'
+        print('Notification Enabled')
 
         self.set_date()
 
 
     def cmd(self, data, wait_for=5.0):
         self.peripheral.writeCharacteristic(0x19, data, withResponse=False)
-        print '-> Command:', data.encode('hex')
+        print('-> Command:', data.encode('hex'))
         self.waitForNotifications(wait_for)
 
     def test_cmd(self, a, b, c):
@@ -136,34 +136,34 @@ class Quintic(btle.DefaultDelegate):
       if cHandle == 0x1c:
         if ord(data[0]) == 0x5b:
             if ord(data[1]) == 0x01:
-                print '<- Result:', data.encode('hex')
+                print('<- Result:', data.encode('hex'))
                 self.device_info(data)
             elif ord(data[1]) == 0x03 or ord(data[1]) == 0x07:
-                print '<- Result:', data.encode('hex')
+                print('<- Result:', data.encode('hex'))
                 if ord(data[-1]):
                     self.waitForNotifications(15.0)
                 else:
-                    print '    No Log?'
+                    print('    No Log?')
             elif ord(data[1]) == 0x10:
-                print '<- Result:', data.encode('hex')
+                print('<- Result:', data.encode('hex'))
                 self.device_info_other(data)
             elif data[6:17] == 'not support':
-                print '<- Command not supported:', hex(cHandle), data.encode('hex')
+                print('<- Command not supported:', hex(cHandle), data.encode('hex'))
             elif ord(data[1]) == 0x0c:
-                print '<- Result:', data.encode('hex')
-                print '    Button Mode!'
+                print('<- Result:', data.encode('hex'))
+                print('    Button Mode!')
             elif ord(data[1]) == 0x14:
-                print '<- Result:', data.encode('hex')
-                print ' Reminder Set?'
+                print('<- Result:', data.encode('hex'))
+                print(' Reminder Set?')
             else:
-                print '<- Unknown:', data.encode('hex'), data
+                print('<- Unknown:', data.encode('hex'), data)
         elif ord(data[0]) == 0x5a:
             self.mqttc.publish('quintic/data', data.encode('hex'))
             self.mqttc.loop(timeout=0.1)
-            print '<- Data:', data.encode('hex')
+            print('<- Data:', data.encode('hex'))
             if ord(data[1]) == 0x05:
                 if len(data) == 5:
-                    print '    Log ACK?'
+                    print('    Log ACK?')
                 elif ord(data[2]) == 0x01:
                     self.log = data[3:]
                     self.logoffs = 0x01
@@ -180,35 +180,35 @@ class Quintic(btle.DefaultDelegate):
                     if ord(data[2]) == 0xfe:
                         self.waitForNotifications(5.0)
                 else:
-                    print '    Badlog!'
+                    print('    Badlog!')
         else:
-            print '<- Unexpected:', data.encode('hex')
+            print('<- Unexpected:', data.encode('hex'))
       else:
-        print '<- Message from other handle', hex(cHandle)
+        print('<- Message from other handle', hex(cHandle))
 
     def device_info(self, data):
         info = "Model:%s MAC:%s Firmware:%d Protocol:%d" % ( data[-5:], data[5:11].encode('hex'), ord(data[-6]) | (ord(data[-7])<<8), ord(data[12]) | (ord(data[11])<<8) )
-        print info;
+        print(info);
         self.mqttc.publish('quintic/stat', info);
         self.mqttc.loop(timeout=0.1)
 
     def device_info_other(self, data):
         info = "Model:%s MAC:%s Firmware:%d Protocol:%d" % ( data[-5:], data[7:13].encode('hex'), ord(data[4]) | (ord(data[3])<<8), ord(data[14]) | (ord(data[13])<<8) )
-        print info;
+        print(info);
         self.mqttc.publish('quintic/stat', info);
         self.mqttc.loop(timeout=0.1)
 	
     def handle_log(self, log):
         (length, b, c, d, e, logtype, year, month, day, first, last, v, w, x, y, z) = struct.unpack('>HBBBBBBBBBBBBBBB', log[:17])
         date = datetime.date(year=year+2000, month=month, day=day)
-        print '    Log Type:', logtype
-        print '    Date:', date
-        print '    First?:', first, 'Last?:', last
+        print('    Log Type:', logtype)
+        print('    Date:', date)
+        print('    First?:', first, 'Last?:', last)
         data = struct.unpack('>'+('H'*(length/2)), log[17:])
-        print '    Count:', sum(data[first:last]), data[first:last]
-        print b, c, d, e
-        print v, w, x, y, z 
-        print sum(data), data
+        print('    Count:', sum(data[first:last]), data[first:last])
+        print(b, c, d, e)
+        print(v, w, x, y, z) 
+        print(sum(data), data)
 
     def waitForNotifications(self, time):
         self.peripheral.waitForNotifications(time)
@@ -226,7 +226,7 @@ if __name__ == '__main__':
 
     # The callback for when the client receives a CONNACK response from the server.
     def on_connect(client, userdata, flags, rc):
-        print("MQTT Connected with result code "+str(rc))
+        print(("MQTT Connected with result code "+str(rc)))
     
         # Subscribing in on_connect() means that if we lose the connection and
         # reconnect then subscriptions will be renewed.
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     
     # The callback for when a PUBLISH message is received from the server.
     def on_message(client, userdata, msg):
-        print(msg.topic+" "+str(msg.payload))
+        print((msg.topic+" "+str(msg.payload)))
 	m = msg.payload.split(" ")
         if msg.payload == "button":
             q.button_mode(on=True);
@@ -253,7 +253,7 @@ if __name__ == '__main__':
         elif m[0] == "days":
             q.query_days_log()
         else:
-            print("IGNORE", m);
+            print(("IGNORE", m));
         
     
     mqttc.on_connect = on_connect
