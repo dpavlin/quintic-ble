@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #Connecting to: 08:7C:BE:8F:3C:FB, address type: public
 #Service <uuid=Generic Attribute handleStart=12 handleEnd=15> :
@@ -235,7 +235,7 @@ if __name__ == '__main__':
     # The callback for when a PUBLISH message is received from the server.
     def on_message(client, userdata, msg):
         print((msg.topic+" "+str(msg.payload)))
-	m = msg.payload.split(" ")
+        m = msg.payload.split(" ")
         if msg.payload == "button":
             q.button_mode(on=True);
         elif m[0] == "vibrate":
