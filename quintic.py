@@ -53,7 +53,7 @@ class Quintic(btle.DefaultDelegate):
 
     def cmd(self, data, wait_for=5.0):
         self.peripheral.writeCharacteristic(0x19, data, withResponse=False)
-        print('-> Command:', data.encode('hex'))
+        print('-> Command:', data.hex())
         self.waitForNotifications(wait_for)
 
     def test_cmd(self, a, b, c):
@@ -135,66 +135,67 @@ class Quintic(btle.DefaultDelegate):
 
     def handleNotification(self, cHandle, data):
       if cHandle == 0x1c:
-        if ord(data[0]) == 0x5b:
-            if ord(data[1]) == 0x01:
-                print('<- Result:', data.encode('hex'))
+        print("data=", data.hex())
+        if data[0] == 0x5b:
+            if data[1] == 0x01:
+                print('<- Result:', data.hex())
                 self.device_info(data)
-            elif ord(data[1]) == 0x03 or ord(data[1]) == 0x07:
-                print('<- Result:', data.encode('hex'))
-                if ord(data[-1]):
+            elif data[1] == 0x03 or data[1] == 0x07:
+                print('<- Result:', data.hex())
+                if data[-1]:
                     self.waitForNotifications(15.0)
                 else:
                     print('    No Log?')
-            elif ord(data[1]) == 0x10:
-                print('<- Result:', data.encode('hex'))
+            elif data[1] == 0x10:
+                print('<- Result:', data.hex())
                 self.device_info_other(data)
             elif data[6:17] == 'not support':
-                print('<- Command not supported:', hex(cHandle), data.encode('hex'))
-            elif ord(data[1]) == 0x0c:
-                print('<- Result:', data.encode('hex'))
+                print('<- Command not supported:', hex(cHandle), data.hex())
+            elif data[1] == 0x0c:
+                print('<- Result:', data.hex())
                 print('    Button Mode!')
-            elif ord(data[1]) == 0x14:
-                print('<- Result:', data.encode('hex'))
+            elif data[1] == 0x14:
+                print('<- Result:', data.hex())
                 print(' Reminder Set?')
             else:
-                print('<- Unknown:', data.encode('hex'), data)
-        elif ord(data[0]) == 0x5a:
-            self.mqttc.publish('quintic/data', data.encode('hex'))
+                print('<- Unknown:', data.hex(), data)
+        elif data[0] == 0x5a:
+            self.mqttc.publish('quintic/data', data.hex())
             self.mqttc.loop(timeout=0.1)
-            print('<- Data:', data.encode('hex'))
-            if ord(data[1]) == 0x05:
+            print('<- Data:', data.hex())
+            if data[1] == 0x05:
                 if len(data) == 5:
                     print('    Log ACK?')
-                elif ord(data[2]) == 0x01:
+                elif data[2] == 0x01:
                     self.log = data[3:]
                     self.logoffs = 0x01
                     self.waitForNotifications(5.0)
-                elif ord(data[2]) == self.logoffs + 1:
+                elif data[2] == self.logoffs + 1:
                     self.log += data[3:]
                     self.logoffs += 1
                     self.waitForNotifications(5.0)
-                elif ord(data[2]) >= 0xfe:
+                elif data[2] >= 0xfe:
                     self.log += data[3:]
                     self.logoffs = 0xff
                     self.handle_log(self.log)
                     self.test_cmd(0x5b, 0x05, 0x00)
-                    if ord(data[2]) == 0xfe:
+                    if data[2] == 0xfe:
                         self.waitForNotifications(5.0)
                 else:
                     print('    Badlog!')
         else:
-            print('<- Unexpected:', data.encode('hex'))
+            print('<- Unexpected:', data.hex())
       else:
         print('<- Message from other handle', hex(cHandle))
 
     def device_info(self, data):
-        info = "Model:%s MAC:%s Firmware:%d Protocol:%d" % ( data[-5:], data[5:11].encode('hex'), ord(data[-6]) | (ord(data[-7])<<8), ord(data[12]) | (ord(data[11])<<8) )
+        info = "Model:%s MAC:%s Firmware:%d Protocol:%d" % ( data[-5:], data[5:11].hex(), data[-6] | (data[-7]<<8), data[12] | (data[11]<<8) )
         print(info);
         self.mqttc.publish('quintic/stat', info);
         self.mqttc.loop(timeout=0.1)
 
     def device_info_other(self, data):
-        info = "Model:%s MAC:%s Firmware:%d Protocol:%d" % ( data[-5:], data[7:13].encode('hex'), ord(data[4]) | (ord(data[3])<<8), ord(data[14]) | (ord(data[13])<<8) )
+        info = "Model:%s MAC:%s Firmware:%d Protocol:%d" % ( data[-5:], data[7:13].hex(), data[4] | (data[3]<<8), data[14] | (data[13]<<8) )
         print(info);
         self.mqttc.publish('quintic/stat', info);
         self.mqttc.loop(timeout=0.1)
